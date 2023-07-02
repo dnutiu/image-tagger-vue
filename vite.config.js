@@ -17,14 +17,6 @@ export default defineConfig({
     vuetify({
       autoImport: true,
     }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'node_modules/onnxruntime-web/dist/ort-wasm-simd.wasm',
-          dest: 'ort-wasm-simd.wasm'
-        }
-      ]
-    })
   ],
   define: { 'process.env': {} },
   resolve: {
