@@ -17,20 +17,17 @@
     </v-row>
     <v-row>
       <v-col cols="12">
-        <input type="file" id="file-in" name="file-in">
+        <v-file-input id="file-in" label="File input" class="max-30-width" @change="onFileChange"></v-file-input>
         <br>
         <div class="py-10">
+          <v-progress-circular v-if="isRunning" indeterminate :size="37" :width="5"></v-progress-circular>
           <v-chip v-for="tag in tags" :key="tag" prepend-icon="mdi-tag" size="large" class="mx-1">
             {{ tag }}
           </v-chip>
         </div>
       </v-col>
       <v-col cols="6">
-        <img src="" id="input-image" class="fixed-image" alt="Input image" />
-        <img src="" class="hidden" id="canvas-image" alt="Input image" style="display: none" />
-      </v-col>
-      <v-col cols="6">
-        <img src="" id="scaled-image" class="scaled-image" style="display: none"  alt="scaled image"/>
+        <img src="/nuculabs-logo.png" id="input-image" class="fixed-image" alt="Input image"/>
       </v-col>
     </v-row>
   </v-container>
@@ -40,6 +37,13 @@
 import {defineComponent} from "vue";
 import {InferenceSession, Tensor} from "onnxruntime-web";
 import classes from "@/model/classes";
+
+const WIDTH = 224;
+const DIMS = [1, 3, WIDTH, WIDTH];
+const MAX_LENGTH = DIMS[0] * DIMS[1] * DIMS[2] * DIMS[3];
+const MAX_SIGNED_VALUE = 255.0;
+
+
 export default defineComponent({
   name: "HomeView",
   data() {
@@ -49,43 +53,46 @@ export default defineComponent({
       tags: [],
     }
   },
-  methods: {},
-  async mounted() {
+  methods: {
+    // Fires when the user selects an image file.
+    onFileChange(event) {
+      this.isRunning = true;
 
-    const WIDTH = 224;
-    const DIMS = [1, 3, WIDTH, WIDTH];
-    const MAX_LENGTH = DIMS[0] * DIMS[1] * DIMS[2] * DIMS[3];
-    const MAX_SIGNED_VALUE = 255.0;
+      let target = event.target || window.event.src;
+      let files = target.files;
 
-    let predictedClass;
-    let isRunning = false;
-
-    function onLoadImage(fileReader) {
-      var img = document.getElementById("input-image");
-      img.onload = () => handleImage(img, WIDTH);
+      if (FileReader && files && files.length) {
+        let fileReader = new FileReader();
+        fileReader.onload = () => this.onLoadImage(fileReader);
+        fileReader.readAsDataURL(files[0]);
+      }
+    },
+    // Fires when the image is loaded into image element.
+    // Updates the image element with user file.
+    onLoadImage(fileReader) {
+      let img = document.getElementById("input-image");
+      img.onload = () => this.handleImage(img, WIDTH);
       img.src = fileReader.result;
-    }
-
-    function handleImage(img, targetWidth) {
-      ctx.drawImage(img, 0, 0);
-      const resizedImageData = processImage(img, targetWidth);
-      const inputTensor = imageDataToTensor(resizedImageData, DIMS);
-      run(inputTensor);
-    }
-
-    function processImage(img, width) {
-      const canvas = document.createElement("canvas"),
-        ctx = canvas.getContext("2d");
+    },
+    // Runs the model on the image.
+    async handleImage(img, targetWidth) {
+      const resizedImageData = await this.processImage(img, targetWidth);
+      const inputTensor = await this.imageDataToTensor(resizedImageData, DIMS);
+      await this.runModel(inputTensor);
+    },
+    // Resizes the image to a square of size specified by width. 224 in this case.
+    async processImage(img, width) {
+      const canvas = document.createElement("canvas");
+      let ctx = canvas.getContext("2d");
 
       canvas.width = width;
       canvas.height = canvas.width * (img.height / img.width);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      document.getElementById("canvas-image").src = canvas.toDataURL();
       return ctx.getImageData(0, 0, width, width).data;
-    }
-
-    function imageDataToTensor(data, dims) {
+    },
+    // Transforms the image data into a tensor.
+    async imageDataToTensor(data, dims) {
       // 1. filter out alpha
       // 2. transpose from [224, 224, 3] -> [3, 224, 224]
       const [R, G, B] = [[], [], []];
@@ -98,23 +105,19 @@ export default defineComponent({
       const transposedData = R.concat(G).concat(B);
 
       // convert to float32
-      let i,
-        l = transposedData.length; // length, we need this for the loop
+      let l = transposedData.length; // length, we need this for the loop
       const float32Data = new Float32Array(MAX_LENGTH); // create the Float32Array for output
-      for (i = 0; i < l; i++) {
+      for (let i = 0; i < l; i++) {
         float32Data[i] = transposedData[i] / MAX_SIGNED_VALUE; // convert to float
       }
 
       // return ort.Tensor
-      const inputTensor = new Tensor("float32", float32Data, dims);
-      return inputTensor;
-    }
-
-    let self = this;
-    async function run(inputTensor) {
+      return new Tensor("float32", float32Data, dims);
+    },
+    async runModel(inputTensor) {
       try {
         const session = await InferenceSession.create("resnet34_10_epochs.onnx");
-        const feeds = { "input.1": inputTensor };
+        const feeds = {"input.1": inputTensor};
 
         // feed inputs and run
         const results = await session.run(feeds);
@@ -126,35 +129,22 @@ export default defineComponent({
             predictedClasses.push(classes[i]);
           }
         }
-
-        predictedClass = `${predictedClasses}`;
-        self.tags = predictedClasses;
-        isRunning = false;
+        this.tags = predictedClasses;
       } catch (e) {
         console.error(e);
-        isRunning = false;
+      } finally {
+        this.isRunning = false;
       }
     }
-
-    const canvas = document.createElement("canvas")
-    let ctx = canvas.getContext("2d");
-
-    document.getElementById("file-in").onchange = function (evt) {
-      let target = evt.target || window.event.src,
-        files = target.files;
-
-      if (FileReader && files && files.length) {
-        isRunning = true;
-        let fileReader = new FileReader();
-        fileReader.onload = () => onLoadImage(fileReader);
-        fileReader.readAsDataURL(files[0]);
-      }
-    };
   },
 })
 </script>
 
 <style>
+.max-30-width {
+  max-width: 30vw;
+}
+
 .fixed-image {
   height: 224px;
   width: 224px;
