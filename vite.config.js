@@ -9,7 +9,6 @@ import {fileURLToPath, URL} from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/image-tagger-vue/',
   plugins: [
     vue({
       template: {transformAssetUrls}
@@ -20,9 +19,7 @@ export default defineConfig({
     }),
   ],
   define: {
-    'process.env': {
-      BASE_URL: "/image-tagger-vue/",
-    }
+    'process.env': {}
   },
   resolve: {
     alias: {
