@@ -5,11 +5,10 @@
         <h1>Image Tagger</h1>
         <p class="py-1">
           This is a simple image tagging application. It allows you to upload
-          images and tag them keywords.
+          images and tag them with keywords.
         </p>
         <p class="py-1">
-          The application is built using Vue.js and Vuetify.
-          The model prediction is done on the client side using ONNX runtime.
+          The model prediction is done on the client browser using ONNX runtime.
         </p>
         <p class="py-1">
           Your images are not sent to any server and your privacy is respected.
