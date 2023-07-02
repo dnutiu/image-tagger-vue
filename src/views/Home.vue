@@ -42,7 +42,7 @@ const WIDTH = 224;
 const DIMS = [1, 3, WIDTH, WIDTH];
 const MAX_LENGTH = DIMS[0] * DIMS[1] * DIMS[2] * DIMS[3];
 const MAX_SIGNED_VALUE = 255.0;
-
+const MODEL_PATH = "/image-tagger-vue/resnet34_10_epochs.onnx";
 
 export default defineComponent({
   name: "HomeView",
@@ -116,7 +116,7 @@ export default defineComponent({
     },
     async runModel(inputTensor) {
       try {
-        const session = await InferenceSession.create("resnet34_10_epochs.onnx");
+        const session = await InferenceSession.create(MODEL_PATH);
         const feeds = {"input.1": inputTensor};
 
         // feed inputs and run

@@ -5,7 +5,7 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 // Utilities
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
-import {viteStaticCopy} from "vite-plugin-static-copy";
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
