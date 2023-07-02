@@ -1,24 +1,29 @@
 // Plugins
 import vue from '@vitejs/plugin-vue'
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import vuetify, {transformAssetUrls} from 'vite-plugin-vuetify'
 
 // Utilities
-import { defineConfig } from 'vite'
-import { fileURLToPath, URL } from 'node:url'
+import {defineConfig} from 'vite'
+import {fileURLToPath, URL} from 'node:url'
 
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/image-tagger-vue/',
   plugins: [
     vue({
-      template: { transformAssetUrls }
+      template: {transformAssetUrls}
     }),
     // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
     vuetify({
       autoImport: true,
     }),
   ],
-  define: { 'process.env': {} },
+  define: {
+    'process.env': {
+      BASE_URL: "/image-tagger-vue/",
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

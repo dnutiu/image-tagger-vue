@@ -4,7 +4,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    base: '/image-tagger-vue/',
     component: () => import('@/layouts/default/Default.vue'),
     children: [
       {
