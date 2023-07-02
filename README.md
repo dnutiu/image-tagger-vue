@@ -1,44 +1,8 @@
-# default
+# Image Tagger Vue
 
-## Project setup
+This project is a simple Vue.JS application that allows you to use a deep learning model for predicting an image tags.
 
-```
-# yarn
-yarn
+The model is based on resnet34 due to GitHub size limits and it was trained with FastAI. The model runs on the browser.
 
-# npm
-npm install
+To view this project, please visit: https://beautiful-tartufo-6d25b3.netlify.app/
 
-# pnpm
-pnpm install
-```
-
-### Compiles and hot-reloads for development
-
-```
-# yarn
-yarn dev
-
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-```
-
-### Compiles and minifies for production
-
-```
-# yarn
-yarn build
-
-# npm
-npm run build
-
-# pnpm
-pnpm build
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://vitejs.dev/config/).
